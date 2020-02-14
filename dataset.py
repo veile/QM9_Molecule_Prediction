@@ -36,7 +36,7 @@ class MolecularDataset(Dataset):
                   i+=1
                   print("Loaded %i of %i" %(i, N))
                   
-          pickle_name = "molecule_set_%i_entries.pkl" %(N-1)
+          pickle_name = "molecule_set_%i_entries.pkl" %N
           print("Saving dataset to \"%s\" for future work" %(data_dir+pickle_name) )
           self.systems.to_pickle(data_dir+pickle_name)        
                 
