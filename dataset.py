@@ -35,7 +35,7 @@ class MolecularDataset(Dataset):
                   
                   i+=1
                   print("Loaded %i of %i" %(i, N))
-                  
+          self.systems.drop(columns="origin")
           pickle_name = "molecule_set_%i_entries.pkl" %N
           print("Saving dataset to \"%s\" for future work" %(data_dir+pickle_name) )
           self.systems.to_pickle(data_dir+pickle_name)        
@@ -66,6 +66,16 @@ class MolecularDataset(Dataset):
     def clean(self):
       self.rm_entries()
       self.pad_data()
+      
+      self.systems['data'] = self.systems['data'].apply(np.stack)
+      print( np.shape( self.systems['data'] ) )
+      self.systems['data'].astype(np.float16)
+      
+      N = len(self)
+      pickle_name = "molecule_set_%i_entries.pkl" %N
+      print("Saving dataset to \"%s\" for future work" %(data_dir+pickle_name) )
+      self.systems.to_pickle(data_dir+pickle_name)
+
 
     def rm_entries(self, max_size=6):
         N = len(self)
