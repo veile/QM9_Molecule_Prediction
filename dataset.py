@@ -73,7 +73,7 @@ class MolecularDataset(Dataset):
             self.rm_entries()
             self.pad_data()
             
-            self.systems['data'] = self.systems['data'].apply(lambda x: x.astype(np.float16))
+            self.systems['data'] = self.systems['data'].apply(lambda x: x.astype(np.float64))
             
             N = len(self)
             pickle_name = "molecule_set_%i_entries.pkl" %N

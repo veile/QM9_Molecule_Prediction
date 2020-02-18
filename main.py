@@ -37,9 +37,15 @@ print(getsizeof(dataset.systems)/2**30)
 print(dataset.systems.dtypes)
 print(data.shape)
 
+#Using CUDA if available
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print("Compute device: ")
+print(device)
+
 net = Net(2)
+net.to(device)
 # Inputting first observation
-input = torch.tensor(data[0].reshape(1, 1, 198, 198, 198))
+input = torch.tensor(data[0].reshape(1, 1, 198, 198, 198)).to(device)
 print(input.shape)
 
 out = net(input)
