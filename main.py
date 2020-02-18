@@ -1,6 +1,9 @@
 from dataset import MolecularDataset
+from unet import Net
 import numpy as np
 from mayavi import mlab
+import torch
+import matplotlib.pyplot as plt
 
 data_dir = "Data/"
 dataset = MolecularDataset(data_dir)
@@ -17,10 +20,39 @@ print("Total removed electrons: %.5f" %(N_before - N_after) )
 
 #def electron3d(dataset, n):
 #    values = dataset[n]['data']
-
-
 #    print("Looking at " + str(dataset[n].atoms.symbols) )
 #    mlab.contour3d(values, contours=50, transparent=True, vmin=-0.1)#, extent=[0, 198, 0, 198, 0, 198])
 #    mlab.pipeline.volume(mlab.pipeline.scalar_field(values))
-   
+#
 #electron3d(dataset, 5)
+
+
+# Training on the dataset
+data = np.stack( dataset.systems['data'].values ).astype(np.float8)
+# Checking memory
+from sys import getsizeof
+print(getsizeof(data))
+print(data.shape)
+
+net = Net(2)
+# Inputting first observation
+input = torch.tensor(data[0].reshape(1, 1, 198, 198, 198))
+print(input.shape)
+
+out = net(input)
+print(out.shape)
+
+# Plotting slices of the density
+sli = 75
+re = int( 156/198*sli )
+
+plt.figure(figsize=(12,6))
+plt.subplot(131)
+plt.imshow( input.detach().numpy()[0, 0, sli, :, :] )
+
+plt.subplot(132)
+plt.imshow( out.detach().numpy()[0, 0, re, :, :] )
+
+plt.subplot(133)
+plt.imshow( out.detach().numpy()[0, 1, re, :, :] )
+plt.show()
