@@ -65,17 +65,20 @@ class MolecularDataset(Dataset):
         return distances.values
 
     def clean(self):
-        self.rm_entries()
-        self.pad_data()
+        # Checking if shape is equal for all entries
+        if np.size( np.unique( self.systems['data'].apply(np.shape).values ) ) == 1:
+            print("Dataset already cleaned!")
         
-        self.systems['data'] = np.array( self.systems['data'].tolist() )
-        print( np.shape( self.systems['data'] ) )
-        self.systems['data'].astype(np.float16)
-        
-        N = len(self)
-        pickle_name = "molecule_set_%i_entries.pkl" %N
-        print("Saving dataset to \"%s\" for future work" %(self.data_dir+pickle_name) )
-        self.systems.to_pickle(self.data_dir+pickle_name)
+        else:
+            self.rm_entries()
+            self.pad_data()
+            
+            self.systems['data'] = self.systems['data'].apply(lambda x: x.astype(np.float16))
+            
+            N = len(self)
+            pickle_name = "molecule_set_%i_entries.pkl" %N
+            print("Saving dataset to \"%s\" for future work" %(self.data_dir+pickle_name) )
+            self.systems.to_pickle(self.data_dir+pickle_name)
 
 
     def rm_entries(self, max_size=6):
