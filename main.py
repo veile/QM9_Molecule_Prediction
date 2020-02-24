@@ -29,7 +29,7 @@ electron3d(dataset, 5)
 """
 
 # Training on the dataset
-data = np.stack( dataset.systems['data'].values ).astype(np.float16)
+data = np.stack( dataset.systems['data'].values )
 # Checking memory
 from sys import getsizeof
 print(getsizeof(data)/2**30) #Converting bytes to gigabytes
@@ -42,11 +42,12 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("Compute device: ")
 print(device)
 
-net = Net(2)
+net = Net(8)
 net.to(device)
 # Inputting first observation
 input = torch.tensor(data[0].reshape(1, 1, 198, 198, 198)).to(device)
 print(input.shape)
+print(input.dtype)
 
 out = net(input)
 print(out.shape)
