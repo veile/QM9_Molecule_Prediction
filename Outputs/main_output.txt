@@ -1,0 +1,46 @@
+Loading data...
+Loaded 1 of 28
+Loaded 2 of 28
+Loaded 3 of 28
+Loaded 4 of 28
+Loaded 5 of 28
+Loaded 6 of 28
+Loaded 7 of 28
+Loaded 8 of 28
+Loaded 9 of 28
+Loaded 10 of 28
+Loaded 11 of 28
+Loaded 12 of 28
+Loaded 13 of 28
+Loaded 14 of 28
+Loaded 15 of 28
+Loaded 16 of 28
+Loaded 17 of 28
+Loaded 18 of 28
+Loaded 19 of 28
+Loaded 20 of 28
+Loaded 21 of 28
+Loaded 22 of 28
+Loaded 23 of 28
+Loaded 24 of 28
+Loaded 25 of 28
+Loaded 26 of 28
+Loaded 27 of 28
+Loaded 28 of 28
+Saving dataset to "Data/molecule_set_28_entries.pkl" for future work
+Removing 0 entries
+Saving dataset to "Data/molecule_set_28_entries.pkl" for future work
+Number of electrons before cut: 74.09014
+Number of electrons after cut: 74.08999
+Total removed electrons: 0.00016
+0.8096807152032852
+0.8096854016184807
+atoms    object
+data     object
+dtype: object
+(28, 198, 198, 198)
+Compute device: 
+cuda:0
+torch.Size([1, 1, 198, 198, 198])
+torch.float32
+torch.Size([0, 2, 159, 159, 159])
