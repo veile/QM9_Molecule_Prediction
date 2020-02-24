@@ -1,9 +1,9 @@
 from dataset import MolecularDataset
 from unet import Net
 import numpy as np
-#from mayavi import mlab
 import torch
-#import matplotlib.pyplot as plt
+import torch.optim as optim
+from ground_truth import contstuct # NOT IMPLEMENTED YET!
 
 data_dir = "Data/"
 dataset = MolecularDataset(data_dir)
@@ -18,24 +18,6 @@ print("Number of electrons before cut: %.5f" %N_before)
 print("Number of electrons after cut: %.5f" %N_after)
 print("Total removed electrons: %.5f" %(N_before - N_after) )
 
-"""
-def electron3d(dataset, n):
-    values = dataset[n]['data']
-    print("Looking at " + str(dataset[n].atoms.symbols) )
-    mlab.contour3d(values, contours=50, transparent=True, vmin=-0.1)#, extent=[0, 198, 0, 198, 0, 198])
-    mlab.pipeline.volume(mlab.pipeline.scalar_field(values))
-
-electron3d(dataset, 5)
-"""
-
-# Training on the dataset
-data = np.stack( dataset.systems['data'].values )
-# Checking memory
-from sys import getsizeof
-print(getsizeof(data)/2**30) #Converting bytes to gigabytes
-print(getsizeof(dataset.systems)/2**30)
-print(dataset.systems.dtypes)
-print(data.shape)
 
 #Using CUDA if available
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -44,27 +26,37 @@ print(device)
 
 net = Net(8)
 net.to(device)
-# Inputting first observation
-input = torch.tensor(data[0].reshape(1, 1, 198, 198, 198)).to(device)
-print(input.shape)
-print(input.dtype)
 
-out = net(input)
-print(out.shape)
+# Preparing data
+input = np.stack( dataset.systems['data'].values )
+true = construct(dataset)
 
-"""
-# Plotting slices of the density
-sli = 75
-re = int( 156/198*sli )
+input = torch.tensor(input[:, np.newaxis, :, :, :]).to(device)
 
-plt.figure(figsize=(12,6))
-plt.subplot(131)
-plt.imshow( input.detach().numpy()[0, 0, sli, :, :] )
 
-plt.subplot(132)
-plt.imshow( out.detach().numpy()[0, 0, re, :, :] )
+# Training the neural network
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-plt.subplot(133)
-plt.imshow( out.detach().numpy()[0, 1, re, :, :] )
-plt.show()
-"""
+for epoch in range(2):  # loop over the dataset multiple times
+
+    running_loss = 0.0
+    for i, data in enumerate(input):
+
+        # zero the parameter gradients
+        optimizer.zero_grad()
+
+        # forward + backward + optimize
+        output = net(data)
+        loss = criterion(output, true[i])
+        loss.backward()
+        optimizer.step()
+
+        # print statistics
+        running_loss += loss.item()
+        if i % 2000 == 1999:    # print every 2000 mini-batches
+            print('[%d, %5d] loss: %.3f' %
+                  (epoch + 1, i + 1, running_loss / 2000))
+            running_loss = 0.0
+
+print('Finished Training')
