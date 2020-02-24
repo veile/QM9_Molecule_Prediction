@@ -22,7 +22,7 @@ class Net(nn.Module):
     def __init__(self, N):
         super(Net, self).__init__()
         
-        # Decoding
+        # Encoding
         self.conv3d_11 = nn.Conv3d( 1, N, 3)
         self.conv3d_12 = nn.Conv3d(N, N, 3)
         self.pool_1 = nn.MaxPool3d(2)
@@ -44,7 +44,7 @@ class Net(nn.Module):
         self.up2 = up_conv3D(2*N, N)
         
         self.conv3d_13 = nn.Conv3d(2*N, N, 3)
-        self.conv3d_14 = nn.Conv3d(N, N, 3)
+        self.conv3d_14 = nn.Conv3d(N, 5, 3)
         
         
     def forward(self, x):
@@ -83,7 +83,7 @@ class Net(nn.Module):
     
         y1 = torch.cat( (xcat, y1), 1)
         y1 = F.relu(self.conv3d_13(y1) )
-        y1 = F.relu(self.conv3d_14(y1) )
+        y1 = F.softmax(self.conv3d_14(y1) )
         
         
         return y1
