@@ -10,6 +10,7 @@ class MolecularDataset(Dataset):
     def __init__(self, data_dir):
         self.systems = pd.DataFrame()
         self.data_dir = data_dir
+        self.precision = np.float32
         
         print("Loading data...")
         # Number of files
@@ -73,7 +74,7 @@ class MolecularDataset(Dataset):
             self.rm_entries()
             self.pad_data()
             
-            self.systems['data'] = self.systems['data'].apply(lambda x: x.astype(np.float64))
+            self.systems['data'] = self.systems['data'].apply(lambda x: x.astype(self.precision))
             
             N = len(self)
             pickle_name = "molecule_set_%i_entries.pkl" %N
