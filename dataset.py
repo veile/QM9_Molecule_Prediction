@@ -99,7 +99,7 @@ class MolecularDataset(Dataset):
             true[atomic_dict[atomic_numbers[i]]] = true[atomic_dict[atomic_numbers[i]]] + mask
         
         # Cropping
-        mid = gridsize/2
+        mid = int( gridsize/2)
         ds = final_grid/2
         
         true = true[:, (mid-math.floor(ds)):(mid+math.ceil(ds))
