@@ -77,3 +77,24 @@ class MolecularDataset(Dataset):
         return np.pad(n, ( (math.floor((mx-x)/2), math.ceil((mx-x)/2)),
                    (math.floor((mx-y)/2), math.ceil((mx-y)/2)),
                    (math.floor((mx-z)/2), math.ceil((mx-z)/2)) ), 'constant', constant_values=0)
+        
+    def ground_truth(self, radius=8, gridsize=200 ):
+        X, Y, Z = np.ogrid[:gridsize, :gridsize, :gridsize]
+        
+        true = np.zeros((6,200,200,200))
+        atoms_pos = np.round(self.a.get_positions()*20).astype(int)+100
+        atomic_numbers = self.a.get_atomic_numbers()
+        # HCONF
+        atomic_dict = {
+                1 : 1,
+                6 : 2,
+                8 : 3,
+                7 : 4,
+                9 : 5}
+    
+        for i in range(len(self.a)):
+            dist_from_center = np.sqrt((X - atoms_pos[i,0])**2 + (Y-atoms_pos[i,1])**2 + (Z-atoms_pos[i,2])**2)
+    
+            mask = dist_from_center <= radius
+            true[atomic_dict[atomic_numbers[i]]] = true[atomic_dict[atomic_numbers[i]]] + mask
+        return true
