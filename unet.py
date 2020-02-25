@@ -9,7 +9,7 @@ class up_conv3D(nn.Module):
         super(up_conv3D,self).__init__()
         self.up = nn.Sequential(
             nn.Upsample(scale_factor=2),
-            nn.Conv3d(ch_in,ch_out,kernel_size=2,stride=1,padding=1,bias=True),
+            nn.Conv3d(ch_in,ch_out,kernel_size=2,stride=1,padding=0,bias=True),
             nn.BatchNorm3d(ch_out),
             nn.ReLU(inplace=True)
         )
