@@ -78,7 +78,7 @@ class MolecularDataset(Dataset):
                    (math.floor((mx-y)/2), math.ceil((mx-y)/2)),
                    (math.floor((mx-z)/2), math.ceil((mx-z)/2)) ), 'constant', constant_values=0)
         
-    def ground_truth(self, radius=8, gridsize=200 ):
+    def ground_truth(self, final_grid = 163, radius=8, gridsize=200):
         X, Y, Z = np.ogrid[:gridsize, :gridsize, :gridsize]
         
         true = np.zeros((6,200,200,200))
@@ -97,4 +97,13 @@ class MolecularDataset(Dataset):
     
             mask = dist_from_center <= radius
             true[atomic_dict[atomic_numbers[i]]] = true[atomic_dict[atomic_numbers[i]]] + mask
+        
+        # Cropping
+        mid = gridsize/2
+        ds = final_grid/2
+        
+        true = true[:, (mid-math.floor(ds)):(mid+math.ceil(ds))
+                     , (mid-math.floor(ds)):(mid+math.ceil(ds))
+                     , (mid-math.floor(ds)):(mid+math.ceil(ds)) ]
+                      
         return true
