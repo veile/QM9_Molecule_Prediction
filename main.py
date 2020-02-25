@@ -21,10 +21,15 @@ print(device)
 net = Net(8)
 net.to(device)
 
+print(net)
+params = list(net.parameters())
+print(len(params))
+
+"""
 # Training the neural network
 
-#criterion = nn.CrossEntropyLoss()
-criterion = nn.NLLLoss()
+criterion = nn.CrossEntropyLoss()
+#criterion = nn.NLLLoss()
 
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
@@ -39,19 +44,18 @@ for epoch in range(2):  # loop over the dataset multiple times
         
         inputs = data.to(device)
         inputs = inputs[np.newaxis, :, :, :, :]
-        true = torch.from_numpy( dataset.ground_truth()).to(device)
-        true = true[np.newaxis, :, :, :, :]
- 
-        print(inputs.shape)
-        print(true.shape)
+        target = torch.from_numpy( dataset.ground_truth()).to(device)
+        target = target[np.newaxis, :, :, :]
+
+        print(target.sum())
         
         # zero the parameter gradients
         optimizer.zero_grad()
 
         # forward + backward + optimize
         output = net(inputs.float())
-        print(output.shape)
-        loss = criterion(output, true)
+        print(output.sum())
+        loss = criterion(output, target.long())
         loss.backward()
         optimizer.step()
 
@@ -63,3 +67,4 @@ for epoch in range(2):  # loop over the dataset multiple times
         running_loss = 0.0
 
 print('Finished Training')
+"""
