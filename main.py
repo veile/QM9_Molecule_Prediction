@@ -1,6 +1,7 @@
 from dataset import MolecularDataset
 from unet import Net
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -10,11 +11,6 @@ data_dir = "Data/"
 dataset = MolecularDataset(data_dir)
 
 loader = torch.utils.data.DataLoader(dataset)
-#
-for i, n in enumerate(loader):
-    print(dataset.a.get_chemical_formula())
-    print(n.shape)
-    print(dataset.flag)
 
 # Training the Neural Network
 #Using CUDA if available
@@ -39,22 +35,26 @@ for epoch in range(2):  # loop over the dataset multiple times
             continue
         
         inputs = data.to(device)
-        true = dataset.ground_truth() # Not implemented yet!
+        inputs = inputs[np.newaxis, :, :, :, :]
+        true = torch.from_numpy( dataset.ground_truth()).to(device)
+        
+        print(inputs.dtype)
+        print(true.dtype)
         
         # zero the parameter gradients
         optimizer.zero_grad()
 
         # forward + backward + optimize
-        output = net(data)
+        output = net(inputs.float())
         loss = criterion(output, true)
         loss.backward()
         optimizer.step()
 
         # print statistics
         running_loss += loss.item()
-        if i % 2000 == 1999:    # print every 2000 mini-batches
-            print('[%d, %5d] loss: %.3f' %
-                  (epoch + 1, i + 1, running_loss / 2000))
-            running_loss = 0.0
+#        if i % 5 == 4:    # print every 2000 mini-batches
+        print('[%d, %5d] loss: %.3f' %
+              (epoch + 1, i + 1, running_loss))
+        running_loss = 0.0
 
 print('Finished Training')
