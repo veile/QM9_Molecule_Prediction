@@ -14,7 +14,7 @@ loader = torch.utils.data.DataLoader(dataset)
 
 # Training the Neural Network
 #Using CUDA if available
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 print("Compute device: ")
 print(device)
 
@@ -22,7 +22,10 @@ net = Net(8)
 net.to(device)
 
 # Training the neural network
-criterion = nn.CrossEntropyLoss()
+
+#criterion = nn.CrossEntropyLoss()
+criterion = nn.NLLLoss()
+
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
 for epoch in range(2):  # loop over the dataset multiple times
@@ -37,15 +40,17 @@ for epoch in range(2):  # loop over the dataset multiple times
         inputs = data.to(device)
         inputs = inputs[np.newaxis, :, :, :, :]
         true = torch.from_numpy( dataset.ground_truth()).to(device)
-        
-        print(inputs.dtype)
-        print(true.dtype)
+        true = true[np.newaxis, :, :, :, :]
+ 
+        print(inputs.shape)
+        print(true.shape)
         
         # zero the parameter gradients
         optimizer.zero_grad()
 
         # forward + backward + optimize
         output = net(inputs.float())
+        print(output.shape)
         loss = criterion(output, true)
         loss.backward()
         optimizer.step()
