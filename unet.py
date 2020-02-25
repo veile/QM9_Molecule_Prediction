@@ -44,7 +44,7 @@ class Net(nn.Module):
         self.up2 = up_conv3D(2*N, N)
         
         self.conv3d_13 = nn.Conv3d(2*N, N, 3)
-        self.conv3d_14 = nn.Conv3d(N, 5, 3)
+        self.conv3d_14 = nn.Conv3d(N, 6, 3) # HCONF + background
         
         
     def forward(self, x):
