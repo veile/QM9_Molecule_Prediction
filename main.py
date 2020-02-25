@@ -1,24 +1,22 @@
 from dataset import MolecularDataset
 from unet import Net
-import numpy as np
+
 import torch
+import torch.nn as nn
 import torch.optim as optim
-from ground_truth import contstuct # NOT IMPLEMENTED YET!
+
 
 data_dir = "Data/"
 dataset = MolecularDataset(data_dir)
 
-N_before = np.sum( dataset.no_electrons() )
+loader = torch.utils.data.DataLoader(dataset)
+#
+for i, n in enumerate(loader):
+    print(dataset.a.get_chemical_formula())
+    print(n.shape)
+    print(dataset.flag)
 
-dataset.clean()
-
-N_after = np.sum( dataset.no_electrons() )
-
-print("Number of electrons before cut: %.5f" %N_before)
-print("Number of electrons after cut: %.5f" %N_after)
-print("Total removed electrons: %.5f" %(N_before - N_after) )
-
-
+# Training the Neural Network
 #Using CUDA if available
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("Compute device: ")
@@ -27,28 +25,28 @@ print(device)
 net = Net(8)
 net.to(device)
 
-# Preparing data
-input = np.stack( dataset.systems['data'].values )
-true = construct(dataset)
-
-input = torch.tensor(input[:, np.newaxis, :, :, :]).to(device)
-
-
 # Training the neural network
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
 for epoch in range(2):  # loop over the dataset multiple times
-
+    
     running_loss = 0.0
-    for i, data in enumerate(input):
-
+    for i, data in enumerate(loader):
+        
+        # If the molecule is too big, it should not be included in the training
+        if not dataset.flag:
+            continue
+        
+        inputs = data.to(device)
+        true = dataset.ground_truth() # Not implemented yet!
+        
         # zero the parameter gradients
         optimizer.zero_grad()
 
         # forward + backward + optimize
         output = net(data)
-        loss = criterion(output, true[i])
+        loss = criterion(output, true)
         loss.backward()
         optimizer.step()
 
