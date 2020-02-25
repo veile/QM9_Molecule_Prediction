@@ -81,7 +81,7 @@ class MolecularDataset(Dataset):
     def ground_truth(self, final_grid = 163, radius=8, gridsize=200):
         X, Y, Z = np.ogrid[:gridsize, :gridsize, :gridsize]
         
-        true = np.zeros((6,200,200,200))
+        true = np.zeros((200,200,200))
         atoms_pos = np.round(self.a.get_positions()*20).astype(int)+100
         atomic_numbers = self.a.get_atomic_numbers()
         # HCONF
@@ -96,14 +96,14 @@ class MolecularDataset(Dataset):
             dist_from_center = np.sqrt((X - atoms_pos[i,0])**2 + (Y-atoms_pos[i,1])**2 + (Z-atoms_pos[i,2])**2)
     
             mask = dist_from_center <= radius
-            true[atomic_dict[atomic_numbers[i]]] = true[atomic_dict[atomic_numbers[i]]] + mask
+            true = true + mask*atomic_dict[atomic_numbers[i] ]
         
         # Cropping
         mid = int( gridsize/2)
         ds = final_grid/2
         
-        true = true[:, (mid-math.floor(ds)):(mid+math.ceil(ds))
-                     , (mid-math.floor(ds)):(mid+math.ceil(ds))
-                     , (mid-math.floor(ds)):(mid+math.ceil(ds)) ]
+        true = true[ (mid-math.floor(ds)):(mid+math.ceil(ds))
+                    ,(mid-math.floor(ds)):(mid+math.ceil(ds))
+                    ,(mid-math.floor(ds)):(mid+math.ceil(ds)) ]
                       
         return true
