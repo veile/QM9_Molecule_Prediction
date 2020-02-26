@@ -7,7 +7,7 @@ from torch.utils.data.dataset import Dataset
 import torchvision.transforms as transforms
 
 class MolecularDataset(Dataset):
-    def __init__(self, data_dir):    
+    def __init__(self, data_dir, input_grid=200, output_grid=163):    
     
         self.data_dir = data_dir
         self.precision = np.float32
@@ -18,18 +18,21 @@ class MolecularDataset(Dataset):
         self.names.sort()
         self.names = np.array(self.names)   
         
-        
-#        self.transform = transforms.Compose([transforms.ToTensor()])  # you can add to the list all the transformations you need. 
+        # Grid parameters
+        self.input_grid = input_grid
+        self.output_grid = output_grid
 
                 
     def __getitem__(self, index):
         file = self.names[index]
         with open(self.data_dir+file, 'r') as f:
-            self.a, n, _ = read_cube(f).values() # Only takes atoms and electron density
-        n, self.flag = self._clean(self.a, n, max_size=6)
+            a, n, _ = read_cube(f).values() # Only takes atoms and electron density
+        n, self.flag = self._clean(a, n, max_size=6)
+        target = self._ground_truth(a, radius=8)
         
-        return n
-#        return [a, n, flag]
+        # Returning the volumetric data with single channel
+        return n[np.newaxis, :, :, :], target[np.newaxis, :, :, :]
+
                 
     def __len__(self):
         return len(self.names) 
@@ -78,12 +81,14 @@ class MolecularDataset(Dataset):
                    (math.floor((mx-y)/2), math.ceil((mx-y)/2)),
                    (math.floor((mx-z)/2), math.ceil((mx-z)/2)) ), 'constant', constant_values=0)
         
-    def ground_truth(self, final_grid = 163, radius=8, gridsize=200):
-        X, Y, Z = np.ogrid[:gridsize, :gridsize, :gridsize]
+    def _ground_truth(self, a, final_grid = 163, radius=8, gridsize=200):
+        X, Y, Z = np.ogrid[:self.input_grid, :self.input_grid, :self.input_grid]
         
-        true = np.zeros((200,200,200))
-        atoms_pos = np.round(self.a.get_positions()*20).astype(int)+100
-        atomic_numbers = self.a.get_atomic_numbers()
+        true = np.zeros((self.input_grid, self.input_grid, self.input_grid))
+        
+        atoms_pos = np.round(a.get_positions()*20).astype(int)+100
+        atomic_numbers = a.get_atomic_numbers()
+        
         # HCONF
         atomic_dict = {
                 1 : 1,
@@ -92,15 +97,15 @@ class MolecularDataset(Dataset):
                 7 : 4,
                 9 : 5}
     
-        for i in range(len(self.a)):
+        for i in range(len(a)):
             dist_from_center = np.sqrt((X - atoms_pos[i,0])**2 + (Y-atoms_pos[i,1])**2 + (Z-atoms_pos[i,2])**2)
     
             mask = dist_from_center <= radius
             true = true + mask*atomic_dict[atomic_numbers[i] ]
         
         # Cropping
-        mid = int( gridsize/2)
-        ds = final_grid/2
+        mid = int(self.input_grid/2)
+        ds = self.output_grid/2
         
         true = true[ (mid-math.floor(ds)):(mid+math.ceil(ds))
                     ,(mid-math.floor(ds)):(mid+math.ceil(ds))
