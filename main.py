@@ -10,7 +10,12 @@ import torch.optim as optim
 data_dir = "Data/"
 dataset = MolecularDataset(data_dir)
 
-loader = torch.utils.data.DataLoader(dataset)
+loader = torch.utils.data.DataLoader(dataset, batch_size=4, num_workers=0, shuffle=True)
+
+for v in loader:
+    inputs, targets = v
+    print(inputs.shape)
+    print(targets.shape)
 
 # Training the Neural Network
 #Using CUDA if available
@@ -20,10 +25,6 @@ print(device)
 
 net = Net(8)
 net.to(device)
-
-print(net)
-params = list(net.parameters())
-print(len(params))
 
 """
 # Training the neural network
