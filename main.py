@@ -8,17 +8,17 @@ import torch.optim as optim
 
 
 data_dir = "Data/"
-dataset = MolecularDataset(data_dir)
+dataset =  MolecularDataset(data_dir)
 
-loader = torch.utils.data.DataLoader(dataset, batch_size=4, num_workers=0, shuffle=True,
-                                    collate_fn = collate_none)
+loader = torch.utils.data.DataLoader(dataset, batch_size=1, num_workers=0, shuffle=True,
+                                    collate_fn=collate_none)
 
 entries = 0
 for v in loader:
     inputs, targets = v
     print(inputs.shape)
     print(targets.shape)
-    entries += inputs[0]
+    entries += inputs.shape[0]
     
 print(entries)
 

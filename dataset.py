@@ -6,7 +6,7 @@ from ase.io.cube import read_cube
 from torch.utils.data.dataset import Dataset
 from torch.utils.data.dataloader import default_collate
 
-def collate_none(batch):"
+def collate_none(batch):
     batch = list( filter (lambda x:x is not None, batch) )
     return default_collate(batch)
 
@@ -31,7 +31,7 @@ class MolecularDataset(Dataset):
         file = self.names[index]
         with open(self.data_dir+file, 'r') as f:
             a, n, _ = read_cube(f).values() # Only takes atoms and electron density
-        n, self.flag = self._clean(a, n, max_size=3)
+        n, flag = self._clean(a, n, max_size=6)
         target = self._ground_truth(a, radius=8)
         
         if flag:
@@ -55,7 +55,7 @@ class MolecularDataset(Dataset):
 
     def _clean(self, a, n, max_size=6):
         # Tells if the entry should be included in training or not
-        flag = self._check_entry(a)
+        flag = self._check_entry(a, max_size=max_size)
         
         if flag:
             n = self._pad_density(n) # Maybe implement loss of electrons
