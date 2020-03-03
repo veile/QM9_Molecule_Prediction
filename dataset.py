@@ -1,119 +1,114 @@
 import os
 import numpy as np
-import pandas as pd
 import math
 
 from ase.io.cube import read_cube
 from torch.utils.data.dataset import Dataset
+import torchvision.transforms as transforms
 
 class MolecularDataset(Dataset):
-    def __init__(self, data_dir):
-        self.systems = pd.DataFrame()
+    def __init__(self, data_dir, input_grid=200, output_grid=163):    
+    
         self.data_dir = data_dir
         self.precision = np.float32
         
-        print("Loading data...")
+        print("Dataset initiated")
         # Number of files
         self.names = os.listdir(data_dir)
         self.names.sort()
-        self.names = np.array(self.names)
-        N = len(self.names)
+        self.names = np.array(self.names)   
         
-        pickle_name = "molecule_set_%i_entries.pkl" %(N-1)
-        mask = np.isin(self.names, pickle_name)
+        # Grid parameters
+        self.input_grid = input_grid
+        self.output_grid = output_grid
 
-        if mask.sum() == 1:
-          self.names = self.names[ self.names != pickle_name]
-          N = len(self.names)
-          print("Pickle file exist - Loading pickle file with %i entries" %(N))
-          self.systems = pd.read_pickle(data_dir+pickle_name)
-
-        else:
-          i=0
-          for file in self.names:
-              with open(data_dir+file, 'r') as f:
-                  s = read_cube(f)
-                  self.systems = self.systems.append(s, ignore_index=True)
-                  
-                  i+=1
-                  print("Loaded %i of %i" %(i, N))
-          self.systems = self.systems.drop(columns="origin")
-          pickle_name = "molecule_set_%i_entries.pkl" %N
-          print("Saving dataset to \"%s\" for future work" %(data_dir+pickle_name) )
-          self.systems.to_pickle(data_dir+pickle_name)        
                 
     def __getitem__(self, index):
-        return self.systems.loc[index]
+        file = self.names[index]
+        with open(self.data_dir+file, 'r') as f:
+            a, n, _ = read_cube(f).values() # Only takes atoms and electron density
+        n, self.flag = self._clean(a, n, max_size=6)
+        target = self._ground_truth(a, radius=8)
+        
+        # Returning the volumetric data with single channel
+        return n[np.newaxis, :, :, :], target[np.newaxis, :, :, :]
+
                 
     def __len__(self):
-        return len(self.systems) 
+        return len(self.names) 
 
-    def no_electrons(self):
-        electrons = self.systems['data'].apply(lambda n: 0.05**3*np.sum(n))
-        return electrons.values
+    def _distance(self, a):
+        pos = a.get_positions()
+        dist = 0
+        for i in range(3):
+            d = np.max( pos[:,i] ) - np.min( pos[:, i]) 
+            if d > dist:
+                dist = d
+        return dist
 
-    def get_distance(self):
-        def distance(a):
-            pos = a.get_positions()
-            dist = 0
-            for i in range(3):
-                d = np.max( pos[:,i] ) - np.min( pos[:, i]) 
-                if d > dist:
-                    dist = d
-            return dist
+    def _clean(self, a, n, max_size=6):
+        # Tells if the entry should be included in training or not
+        flag = self._check_entry(a)
         
-        distances = self.systems['atoms'].apply(distance)
-        return distances.values
+        if flag:
+            n = self._pad_density(n) # Maybe implement loss of electrons
+            
+        return n, flag
 
-    def clean(self):
-        # Checking if shape is equal for all entries
-        if np.size( np.unique( self.systems['data'].apply(np.shape).values ) ) == 1:
-            print("Dataset already cleaned!")
-        
+
+    def _check_entry(self, a, max_size=6):
+        if self._distance(a) > max_size:
+            return False
         else:
-            self.rm_entries()
-            self.pad_data()
+            return True
             
-            self.systems['data'] = self.systems['data'].apply(lambda x: x.astype(self.precision))
-            
-            N = len(self)
-            pickle_name = "molecule_set_%i_entries.pkl" %N
-            print("Saving dataset to \"%s\" for future work" %(self.data_dir+pickle_name) )
-            self.systems.to_pickle(self.data_dir+pickle_name)
+    def _pad_density(self, n, mx=200):
+        x, y, z = np.shape(n)
 
+        if x > mx:
+            l = (x - mx)/2
+            n = n[math.floor(l):(x-math.ceil(l)), :, :]
+        if y > mx:
+            l = (y - mx)/2
+            n = n[:, math.floor(l):(y-math.ceil(l)), :]
+        if z > mx:
+            l = (z - mx)/2
+            n = n[:, :, math.floor(l):(z-math.ceil(l))]
 
-    def rm_entries(self, max_size=6):
-        N = len(self)
-        dist = self.get_distance()
-        idx = dist < max_size
+        x, y, z = np.shape(n)
+
+        return np.pad(n, ( (math.floor((mx-x)/2), math.ceil((mx-x)/2)),
+                   (math.floor((mx-y)/2), math.ceil((mx-y)/2)),
+                   (math.floor((mx-z)/2), math.ceil((mx-z)/2)) ), 'constant', constant_values=0)
         
-        self.systems = self.systems[idx]
-        self.names = self.names[idx]
+    def _ground_truth(self, a, final_grid = 163, radius=8, gridsize=200):
+        X, Y, Z = np.ogrid[:self.input_grid, :self.input_grid, :self.input_grid]
         
-        print("Removing %i entries" %(N-idx.sum()) )
-
-    def pad_data(self):
-        dr = 0.05
-        dist = self.get_distance()
-        mx = math.ceil( (dist.max()+4)/dr )
-
-        def pad(n, mx):
-            x, y, z = np.shape(n)
-    
-            if x > mx:
-                l = (x - mx)/2
-                n = n[math.floor(l):(x-math.ceil(l)), :, :]
-            if y > mx:
-                l = (y - mx)/2
-                n = n[:, math.floor(l):(y-math.ceil(l)), :]
-            if z > mx:
-                l = (z - mx)/2
-                n = n[:, :, math.floor(l):(z-math.ceil(l))]
-    
-            x, y, z = np.shape(n)
-    
-            return np.pad(n, ( (math.floor((mx-x)/2), math.ceil((mx-x)/2)),
-                       (math.floor((mx-y)/2), math.ceil((mx-y)/2)),
-                       (math.floor((mx-z)/2), math.ceil((mx-z)/2)) ), 'constant', constant_values=0)
+        true = np.zeros((self.input_grid, self.input_grid, self.input_grid))
         
-        self.systems['data'] = self.systems['data'].apply(lambda n: pad(n, mx) )
+        atoms_pos = np.round(a.get_positions()*20).astype(int)+100
+        atomic_numbers = a.get_atomic_numbers()
+        
+        # HCONF
+        atomic_dict = {
+                1 : 1,
+                6 : 2,
+                8 : 3,
+                7 : 4,
+                9 : 5}
+    
+        for i in range(len(a)):
+            dist_from_center = np.sqrt((X - atoms_pos[i,0])**2 + (Y-atoms_pos[i,1])**2 + (Z-atoms_pos[i,2])**2)
+    
+            mask = dist_from_center <= radius
+            true = true + mask*atomic_dict[atomic_numbers[i] ]
+        
+        # Cropping
+        mid = int(self.input_grid/2)
+        ds = self.output_grid/2
+        
+        true = true[ (mid-math.floor(ds)):(mid+math.ceil(ds))
+                    ,(mid-math.floor(ds)):(mid+math.ceil(ds))
+                    ,(mid-math.floor(ds)):(mid+math.ceil(ds)) ]
+                      
+        return true

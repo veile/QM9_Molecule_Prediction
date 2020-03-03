@@ -9,7 +9,7 @@ class up_conv3D(nn.Module):
         super(up_conv3D,self).__init__()
         self.up = nn.Sequential(
             nn.Upsample(scale_factor=2),
-            nn.Conv3d(ch_in,ch_out,kernel_size=2,stride=1,padding=1,bias=True),
+            nn.Conv3d(ch_in,ch_out,kernel_size=2,stride=1,padding=0,bias=True),
             nn.BatchNorm3d(ch_out),
             nn.ReLU(inplace=True)
         )
@@ -44,7 +44,7 @@ class Net(nn.Module):
         self.up2 = up_conv3D(2*N, N)
         
         self.conv3d_13 = nn.Conv3d(2*N, N, 3)
-        self.conv3d_14 = nn.Conv3d(N, 5, 3)
+        self.conv3d_14 = nn.Conv3d(N, 6, 3) # HCONF + background
         
         
     def forward(self, x):
@@ -83,7 +83,7 @@ class Net(nn.Module):
     
         y1 = torch.cat( (xcat, y1), 1)
         y1 = F.relu(self.conv3d_13(y1) )
-        y1 = F.softmax(self.conv3d_14(y1) )
+        y1 = F.softmax(self.conv3d_14(y1), dim=-1 )
         
         
         return y1
