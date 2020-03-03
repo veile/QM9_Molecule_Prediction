@@ -1,4 +1,4 @@
-from dataset import MolecularDataset
+from dataset import MolecularDataset, collate_none
 from unet import Net
 
 import numpy as np
@@ -10,21 +10,26 @@ import torch.optim as optim
 data_dir = "Data/"
 dataset = MolecularDataset(data_dir)
 
-loader = torch.utils.data.DataLoader(dataset, batch_size=4, num_workers=0, shuffle=True)
+loader = torch.utils.data.DataLoader(dataset, batch_size=4, num_workers=0, shuffle=True,
+                                    collate_fn = collate_none)
 
+entries = 0
 for v in loader:
     inputs, targets = v
     print(inputs.shape)
     print(targets.shape)
+    entries += inputs[0]
+    
+print(entries)
 
 # Training the Neural Network
 #Using CUDA if available
-device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
-print("Compute device: ")
-print(device)
+# device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+# print("Compute device: ")
+# print(device)
 
-net = Net(8)
-net.to(device)
+# net = Net(8)
+# net.to(device)
 
 """
 # Training the neural network

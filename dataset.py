@@ -4,7 +4,11 @@ import math
 
 from ase.io.cube import read_cube
 from torch.utils.data.dataset import Dataset
-import torchvision.transforms as transforms
+from torch.utils.data.dataloader import default_collate
+
+def collate_none(batch):"
+    batch = list( filter (lambda x:x is not None, batch) )
+    return default_collate(batch)
 
 class MolecularDataset(Dataset):
     def __init__(self, data_dir, input_grid=200, output_grid=163):    
@@ -27,11 +31,14 @@ class MolecularDataset(Dataset):
         file = self.names[index]
         with open(self.data_dir+file, 'r') as f:
             a, n, _ = read_cube(f).values() # Only takes atoms and electron density
-        n, self.flag = self._clean(a, n, max_size=6)
+        n, self.flag = self._clean(a, n, max_size=3)
         target = self._ground_truth(a, radius=8)
         
-        # Returning the volumetric data with single channel
-        return n[np.newaxis, :, :, :], target[np.newaxis, :, :, :]
+        if flag:
+            # Returning the volumetric data with single channel
+            return n[np.newaxis, :, :, :], target[np.newaxis, :, :, :]
+        else:
+            return None
 
                 
     def __len__(self):
