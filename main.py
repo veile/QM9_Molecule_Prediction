@@ -10,7 +10,7 @@ import torch.optim as optim
 data_dir = "Data/"
 dataset =  MolecularDataset(data_dir)
 
-loader = torch.utils.data.DataLoader(dataset, batch_size=1, num_workers=0, shuffle=True)
+loader = torch.utils.data.DataLoader(dataset, batch_size=4, num_workers=0, shuffle=True)
 
 # Training the Neural Network
 #Using CUDA if available
@@ -45,8 +45,6 @@ for epoch in range(2):  # loop over the dataset multiple times
 
         loss = criterion(outputs, targets)
         loss.backward()
-        print(loss.grad)
-        print(loss)
         optimizer.step()
 
         # print statistics
