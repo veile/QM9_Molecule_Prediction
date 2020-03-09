@@ -11,7 +11,7 @@ def collate_none(batch):
     return default_collate(batch)
 
 class MolecularDataset(Dataset):
-    def __init__(self, data_dir, input_grid=200, output_grid=157):    
+    def __init__(self, data_dir, input_grid=200, output_grid=154):    
     
         self.data_dir = data_dir
         self.precision = np.float32
