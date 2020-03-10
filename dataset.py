@@ -4,10 +4,14 @@ import math
 
 from ase.io.cube import read_cube
 from torch.utils.data.dataset import Dataset
-import torchvision.transforms as transforms
+from torch.utils.data.dataloader import default_collate
+
+def collate_none(batch):
+    batch = list( filter (lambda x:x is not None, batch) )
+    return default_collate(batch)
 
 class MolecularDataset(Dataset):
-    def __init__(self, data_dir, input_grid=200, output_grid=163):    
+    def __init__(self, data_dir, input_grid=200, output_grid=154):    
     
         self.data_dir = data_dir
         self.precision = np.float32
@@ -27,11 +31,14 @@ class MolecularDataset(Dataset):
         file = self.names[index]
         with open(self.data_dir+file, 'r') as f:
             a, n, _ = read_cube(f).values() # Only takes atoms and electron density
-        n, self.flag = self._clean(a, n, max_size=6)
+        n, flag = self._clean(a, n, max_size=6)
         target = self._ground_truth(a, radius=8)
         
-        # Returning the volumetric data with single channel
-        return n[np.newaxis, :, :, :], target[np.newaxis, :, :, :]
+        if flag:
+            # Returning the volumetric data with single channel
+            return n[np.newaxis, :, :, :], target
+        else:
+            return None
 
                 
     def __len__(self):
@@ -48,7 +55,7 @@ class MolecularDataset(Dataset):
 
     def _clean(self, a, n, max_size=6):
         # Tells if the entry should be included in training or not
-        flag = self._check_entry(a)
+        flag = self._check_entry(a, max_size=max_size)
         
         if flag:
             n = self._pad_density(n) # Maybe implement loss of electrons
