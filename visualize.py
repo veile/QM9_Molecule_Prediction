@@ -4,29 +4,41 @@ Created on Mon Mar  9 13:42:09 2020
 
 @author: Thomas
 """
-from mayavi import mlab
+
+import matplotlib.pyplot as plt
 import torch
 from dataset import MolecularDataset, collate_none
+from unet import Net
 
+# Loading trained model
+PATH="./QM9_net.pth"
+
+net = Net(8)
+net.load_state_dict(torch.load(PATH,  map_location=torch.device('cpu')))
+
+
+# Loading dataset
 data_dir = "Data/"
 dataset =  MolecularDataset(data_dir)
-
 loader = torch.utils.data.DataLoader(dataset, batch_size=1, num_workers=0, shuffle=False)
 
 
+n, ground =  next(iter(loader))
 
-n = next(iter(loader))[0].numpy().reshape(200,200,200)
-mlab.contour3d(n, contours=5, transparent=True)
+plt.figure(12,12)
 
-#
-#def electron3d(dataset, n):
-#    values = dataset[n]['data']
-#
-#
-#    print("Looking at " + str(dataset[n].atoms.symbols) )
-#    mlab.contour3d(values, contours=50, transparent=True, vmin=-0.1)#, extent=[0, 198, 0, 198, 0, 198])
-##    mlab.pipeline.volume(mlab.pipeline.scalar_field(values))
-#
-#
-#
-#electron3d(dataset, 5)
+plt.subplot(431)
+plt.title("Ground truth")
+plt.imshow( ground[0, 80, :, :], origin='lower')
+
+
+output = net(n)
+for c in range( output.shape[1] ):
+    plc = 432+c
+    plt.subplot(plc)
+    plt.title("Channle %c" %(c+1))
+    plt.imshow( output[0, c, 80, :, :], origin='lower')
+
+plt.tight_layout()
+plt.savefig("comparison.png", dpi=300)
+#plt.show()
