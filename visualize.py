@@ -25,20 +25,21 @@ loader = torch.utils.data.DataLoader(dataset, batch_size=1, num_workers=0, shuff
 
 n, ground =  next(iter(loader))
 
-plt.figure(12,12)
+plt.figure( figsize=(12,12))
 
 plt.subplot(431)
 plt.title("Ground truth")
 plt.imshow( ground[0, 80, :, :], origin='lower')
 
 
-output = net(n)
+output = net(n.float())
+output = output.detach().numpy()
 for c in range( output.shape[1] ):
     plc = 432+c
     plt.subplot(plc)
-    plt.title("Channle %c" %(c+1))
+    plt.title("Channel %c" %(c+1))
     plt.imshow( output[0, c, 80, :, :], origin='lower')
 
 plt.tight_layout()
 plt.savefig("comparison.png", dpi=300)
-#plt.show()
+plt.show()
