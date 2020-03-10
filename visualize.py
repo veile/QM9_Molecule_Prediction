@@ -20,25 +20,30 @@ net.load_state_dict(torch.load(PATH,  map_location=torch.device('cpu')))
 # Loading dataset
 data_dir = "Data/"
 dataset =  MolecularDataset(data_dir)
-loader = torch.utils.data.DataLoader(dataset, batch_size=1, num_workers=0, shuffle=False)
 
-
-n, ground =  next(iter(loader))
+n, ground =  dataset[5]
 
 plt.figure( figsize=(12,12))
 
 plt.subplot(431)
 plt.title("Ground truth")
-plt.imshow( ground[0, 80, :, :], origin='lower')
+plt.imshow( ground[80, :, :], origin='lower')
+plt.colorbar()
+
+plt.subplot(432)
+plt.title("Electron Density")
+plt.imshow( n[0, 104, :, :], origin='lower')
+plt.colorbar()
 
 
-output = net(n.float())
+output = net( torch.tensor( n.reshape(1,1,200,200,200) ).float() )
 output = output.detach().numpy()
 for c in range( output.shape[1] ):
-    plc = 432+c
+    plc = 433+c
     plt.subplot(plc)
-    plt.title("Channel %c" %(c+1))
+    plt.title("Channel %i" %(c+1))
     plt.imshow( output[0, c, 80, :, :], origin='lower')
+    plt.colorbar()
 
 plt.tight_layout()
 plt.savefig("comparison.png", dpi=300)
