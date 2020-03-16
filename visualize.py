@@ -11,10 +11,10 @@ from dataset import MolecularDataset, collate_none
 from unet import Net
 
 # Loading trained model
-PATH="./QM9_net.pth"
+PATH="QM9_net_100_sigmoid"
 
 net = Net(8)
-net.load_state_dict(torch.load(PATH,  map_location=torch.device('cpu')))
+net.load_state_dict(torch.load(PATH+".pth",  map_location=torch.device('cpu')))
 
 
 # Loading dataset
@@ -46,5 +46,5 @@ for c in range( output.shape[1] ):
     plt.colorbar()
 
 plt.tight_layout()
-plt.savefig("comparison.png", dpi=300)
+plt.savefig("comparison_%s.png" %PATH, dpi=300)
 plt.show()
