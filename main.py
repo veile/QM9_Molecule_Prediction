@@ -10,7 +10,7 @@ import torch.optim as optim
 data_dir = "Data/"
 dataset =  MolecularDataset(data_dir)
 
-train_set, test_set = torch.utils.data.random_split(dataset, [23 ,5]) 
+train_set, test_set = torch.utils.data.random_split(dataset, [28, 0]) 
 
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=1, num_workers=0, shuffle=True)
 test_loader = torch.utils.data.DataLoader(test_set, batch_size=1, num_workers=0, shuffle=False)
@@ -34,7 +34,8 @@ targets_tmp = np.zeros( (157, 157, 157) )
 
 print("----Training begun----")
 print("[Epoch, Entry] - Loss")
-for epoch in range(10):  # loop over the dataset multiple times
+epochs=100
+for epoch in range(epochs):  # loop over the dataset multiple times
     
     running_loss = 0.0
     for i, (inputs, targets) in enumerate(train_loader):
@@ -69,6 +70,6 @@ for epoch in range(10):  # loop over the dataset multiple times
     print("Validation error after epoch %i is: %.3f" %(epoch+1, validation_error ))
         
 print('Finished Training')
-PATH = './QM9_net.pth'
+PATH = './QM9_net_%i_sigmoid.pth' %epochs
 print("Saving model to %s" %PATH)
 torch.save(net.state_dict(), PATH)
