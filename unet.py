@@ -83,7 +83,7 @@ class Net(nn.Module):
     
         y1 = torch.cat( (xcat, y1), 1)
         y1 = F.relu(self.conv3d_13(y1) )
-        y1 = torch.sigmoid( self.conv3d_14(y1) ) 
+        y1 =  self.conv3d_14(y1)
         
         
         return y1
