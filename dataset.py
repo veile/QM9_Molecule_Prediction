@@ -1,6 +1,7 @@
-import os
 import numpy as np
 import math
+import tarfile
+import io
 
 from ase.io.cube import read_cube
 from torch.utils.data.dataset import Dataset
@@ -11,14 +12,14 @@ def collate_none(batch):
     return default_collate(batch)
 
 class MolecularDataset(Dataset):
-    def __init__(self, data_dir, input_grid=200, output_grid=154):    
-    
-        self.data_dir = data_dir
+    def __init__(self, tar_filename, input_grid=200, output_grid=154):    
+        
+        self.tar = tarfile.open(tar_filename, "r:gz")
         self.precision = np.float32
         
         print("Dataset initiated")
         # Number of files
-        self.names = os.listdir(data_dir)
+        self.names = self.tar.getnames()
         self.names.sort()
         self.names = np.array(self.names)   
         
@@ -28,9 +29,17 @@ class MolecularDataset(Dataset):
 
                 
     def __getitem__(self, index):
-        file = self.names[index]
-        with open(self.data_dir+file, 'r') as f:
-            a, n, _ = read_cube(f).values() # Only takes atoms and electron density
+        entry = self.tar.getmember( self.names[index] )
+        f = self.tar.extractfile(entry)
+        if f is not None:
+            content = f.read()
+            cubefile = io.StringIO(content.decode('utf-8'))
+            
+        else:
+            raise Exception("File was not extracted correctly")
+        a, n, _ = read_cube(cubefile).values() # Only takes atoms and electron density
+        
+        # Make consistent input shape and construct ground_truth
         n, flag = self._clean(a, n, max_size=6)
         target = self._ground_truth(a, radius=8)
         
