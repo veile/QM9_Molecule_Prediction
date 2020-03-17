@@ -11,8 +11,15 @@ def collate_none(batch):
     batch = list( filter (lambda x:x is not None, batch) )
     return default_collate(batch)
 
+
+#Output grid 154 for 3x3x3 conv
+#Output grid 129 for 4x4x4 conv
+#Output grid 108 for 5x5x5 conv
+#Output grid 150 for 2 5x5x5 and rest 3x3x3
+#Output grid 126 for contractive 5x5x5 and expansive 3x3x3
+
 class MolecularDataset(Dataset):
-    def __init__(self, tar_filename, input_grid=200, output_grid=154):    
+    def __init__(self, tar_filename, input_grid=200, output_grid=108):    
         
         self.tar = tarfile.open(tar_filename, "r:gz")
         self.precision = np.float32
