@@ -20,32 +20,31 @@ class up_conv3D(nn.Module):
 
 class Net(nn.Module):
     def __init__(self, N):
-        kernel_size = 3
-        stride = 1
+        kernel_size = 5
         super(Net, self).__init__()
         
         # Encoding
-        self.conv3d_11 = nn.Conv3d( 1, N, 7, stride=stride)
-        self.conv3d_12 = nn.Conv3d(N, N, 7, stride=stride)
+        self.conv3d_11 = nn.Conv3d( 1, N, 7)
+        self.conv3d_12 = nn.Conv3d(N, N, 7)
         self.pool_1 = nn.MaxPool3d(2)
         
-        self.conv3d_21 = nn.Conv3d(N, 2*N, kernel_size, stride=stride)
-        self.conv3d_22 = nn.Conv3d(2*N, 2*N, kernel_size, stride=stride)
+        self.conv3d_21 = nn.Conv3d(N, 2*N, kernel_size)
+        self.conv3d_22 = nn.Conv3d(2*N, 2*N, kernel_size)
         self.pool_2 = nn.MaxPool3d(2)
         
         # Latent space
-        self.conv3d_31 = nn.Conv3d(2*N, 4*N, kernel_size, stride=stride)
-        self.conv3d_32 = nn.Conv3d(4*N, 4*N, kernel_size, stride=stride)
+        self.conv3d_31 = nn.Conv3d(2*N, 4*N, kernel_size)
+        self.conv3d_32 = nn.Conv3d(4*N, 4*N, kernel_size)
 
         
         #Decoding
         self.up3 = up_conv3D(4*N, 2*N, kernel_size)
         
-        self.conv3d_23 = nn.Conv3d(4*N, 2*N, kernel_size, stride=stride)
-        self.conv3d_24 = nn.Conv3d(2*N, 2*N, kernel_size, stride=stride)
+        self.conv3d_23 = nn.Conv3d(4*N, 2*N, kernel_size)
+        self.conv3d_24 = nn.Conv3d(2*N, 2*N, kernel_size)
         self.up2 = up_conv3D(2*N, N, kernel_size)
         
-        self.conv3d_13 = nn.Conv3d(2*N, N, kernel_size, stride=stride)
+        self.conv3d_13 = nn.Conv3d(2*N, N, kernel_size)
         self.conv3d_14 = nn.Conv3d(N, 6, kernel_size) # HCONF + background
         
         
