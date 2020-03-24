@@ -6,7 +6,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
 
 tarfile = "qm9_000xxx_29.cube.tar.gz"
 dataset =  MolecularDataset(tarfile)
