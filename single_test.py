@@ -6,6 +6,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from datetime import datetime
+
+start = datetime.now()
 
 tarfile = "qm9_000xxx_29.cube.tar.gz"
 dataset =  MolecularDataset(tarfile)
@@ -23,7 +26,7 @@ optimizer = optim.Adam(net.parameters(), lr=1e-4)
 inputs, targets = next(iter(loader))
 inputs, targets = inputs.to(device).float(), targets.to(device).long()
 
-epochs=1000
+epochs=10
 for epoch in range(epochs):  # loop over the dataset multiple times
     # zero the parameter gradients
     optimizer.zero_grad()
@@ -43,3 +46,6 @@ for epoch in range(epochs):  # loop over the dataset multiple times
 PATH = './single_test.pth'
 print("Saving model to %s" %PATH)
 torch.save(net.state_dict(), PATH)
+
+elapsed = datetime.now() - start
+print(elapsed )
