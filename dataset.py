@@ -19,7 +19,7 @@ def collate_none(batch):
 #Output grid 126 for contractive 5x5x5 and expansive 3x3x3
 
 class MolecularDataset(Dataset):
-    def __init__(self, tar_filename, input_grid=200, output_grid=108):    
+    def __init__(self, tar_filename, input_grid=200, output_grid=104):    
         
         self.tar = tarfile.open(tar_filename, "r:gz")
         self.precision = np.float32
