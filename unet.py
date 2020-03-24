@@ -5,11 +5,11 @@ import numpy as np
 import math
 
 class up_conv3D(nn.Module):
-    def __init__(self,ch_in,ch_out):
+    def __init__(self,ch_in,ch_out, kernel_size):
         super(up_conv3D,self).__init__()
         self.up = nn.Sequential(
             nn.Upsample(scale_factor=2),
-            nn.Conv3d(ch_in,ch_out, kernel_size=3,stride=1,padding=0,bias=True),
+            nn.Conv3d(ch_in,ch_out, kernel_size=kernel_size, stride=1, padding=0, bias=True),
             nn.BatchNorm3d(ch_out),
             nn.ReLU(inplace=True)
         )
@@ -20,31 +20,32 @@ class up_conv3D(nn.Module):
 
 class Net(nn.Module):
     def __init__(self, N):
+        kernel_size = 5
         super(Net, self).__init__()
         
         # Encoding
-        self.conv3d_11 = nn.Conv3d( 1, N, 3)
-        self.conv3d_12 = nn.Conv3d(N, N, 3)
+        self.conv3d_11 = nn.Conv3d( 1, N, 7)
+        self.conv3d_12 = nn.Conv3d(N, N, 7)
         self.pool_1 = nn.MaxPool3d(2)
         
-        self.conv3d_21 = nn.Conv3d(N, 2*N, 3)
-        self.conv3d_22 = nn.Conv3d(2*N, 2*N, 3)
+        self.conv3d_21 = nn.Conv3d(N, 2*N, kernel_size)
+        self.conv3d_22 = nn.Conv3d(2*N, 2*N, kernel_size)
         self.pool_2 = nn.MaxPool3d(2)
         
         # Latent space
-        self.conv3d_31 = nn.Conv3d(2*N, 4*N, 3)
-        self.conv3d_32 = nn.Conv3d(4*N, 4*N, 3)
+        self.conv3d_31 = nn.Conv3d(2*N, 4*N, kernel_size)
+        self.conv3d_32 = nn.Conv3d(4*N, 4*N, kernel_size)
 
         
         #Decoding
-        self.up3 = up_conv3D(4*N, 2*N)
+        self.up3 = up_conv3D(4*N, 2*N, kernel_size)
         
-        self.conv3d_23 = nn.Conv3d(4*N, 2*N, 3)
-        self.conv3d_24 = nn.Conv3d(2*N, 2*N, 3)
-        self.up2 = up_conv3D(2*N, N)
+        self.conv3d_23 = nn.Conv3d(4*N, 2*N, kernel_size)
+        self.conv3d_24 = nn.Conv3d(2*N, 2*N, kernel_size)
+        self.up2 = up_conv3D(2*N, N, kernel_size)
         
-        self.conv3d_13 = nn.Conv3d(2*N, N, 3)
-        self.conv3d_14 = nn.Conv3d(N, 6, 3) # HCONF + background
+        self.conv3d_13 = nn.Conv3d(2*N, N, kernel_size)
+        self.conv3d_14 = nn.Conv3d(N, 6, kernel_size) # HCONF + background
         
         
     def forward(self, x):
@@ -83,7 +84,11 @@ class Net(nn.Module):
     
         y1 = torch.cat( (xcat, y1), 1)
         y1 = F.relu(self.conv3d_13(y1) )
-        y1 = torch.sigmoid( self.conv3d_14(y1) ) 
+        y1 =  self.conv3d_14(y1)
         
         
         return y1
+
+if __name__=="__main__":
+    model = Net(8)
+    print( sum(p.numel() for p in model.parameters() if p.requires_grad) )

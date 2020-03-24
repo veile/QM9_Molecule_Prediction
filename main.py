@@ -5,16 +5,17 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from datetime import datetime
 
+start = datetime.now()
 
-data_dir = "Data/"
-dataset =  MolecularDataset(data_dir)
+tarfile = "qm9_000xxx_29.cube.tar.gz"
+dataset =  MolecularDataset(tarfile)
 
-train_set, test_set = torch.utils.data.random_split(dataset, [23 ,5]) 
+train_set, test_set = torch.utils.data.random_split(dataset, [25, 3]) 
 
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=1, num_workers=0, shuffle=True)
 test_loader = torch.utils.data.DataLoader(test_set, batch_size=1, num_workers=0, shuffle=False)
-
 
 # Training the Neural Network
 #Using CUDA if available
@@ -29,12 +30,13 @@ net.to(device)
 
 criterion = nn.CrossEntropyLoss()
 
-optimizer = optim.SGD(net.parameters(), lr=0.5)#, momentum=0.9)
-targets_tmp = np.zeros( (157, 157, 157) )
+optimizer = optim.Adam(net.parameters(), lr=1e-4)
+targets_tmp = np.zeros( (dataset.output_grid, dataset.output_grid, dataset.output_grid) )
 
 print("----Training begun----")
 print("[Epoch, Entry] - Loss")
-for epoch in range(10):  # loop over the dataset multiple times
+epochs=100
+for epoch in range(epochs):  # loop over the dataset multiple times
     
     running_loss = 0.0
     for i, (inputs, targets) in enumerate(train_loader):
@@ -72,3 +74,7 @@ print('Finished Training')
 PATH = './QM9_net.pth'
 print("Saving model to %s" %PATH)
 torch.save(net.state_dict(), PATH)
+
+print("Elapsed time:")
+elapsed = datetime.now() - start
+print(elapsed)
