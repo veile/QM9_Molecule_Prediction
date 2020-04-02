@@ -37,7 +37,6 @@ optimizer = optim.Adam(net.parameters(), lr=1e-4)
 targets_tmp = np.zeros( (dataset.output_grid, dataset.output_grid, dataset.output_grid) )
 
 trained_molecules = 0
-validation_errors = []
 PATH = './QM9_net.pth'
 first_loop = ~path.exists(PATH)
 
@@ -48,8 +47,9 @@ if ~first_loop:
     optimizer.load_state_dict(model['optimizer_state_dict'])
     trained_molecules = model['trained_molecules']
     best_validation_error = model['loss']
-    print('Loaded state with %i molecules' % trained_molecules)
     
+    print('Loaded state with %i molecules' % trained_molecules)
+
 it = iter(train_loader)
 while (time.time() - start) < 23*60*60:  # loop over the dataset multiple times
 
@@ -91,30 +91,33 @@ while (time.time() - start) < 23*60*60:  # loop over the dataset multiple times
             outputs = net(test_inputs)
             validation_error += criterion(outputs, test_targets)/len(test_set)
             print("Validation error after %i molecules is: %.3f" %(trained_molecules, validation_error ))
-        validation_errors.append(validation_error)
+
+        f=open("validation_errors.txt", "a+")
+        f.write(trained_molecules, validation_error)
+        f.close()
         
         # if the validation error is lower than current best, replace that model with current model
         if first_loop:
             best_validation_error = validation_error
             first_loop = False
-            torch.save({
-                        'trained_molecules': trained_molecules,
+            torch.save({'trained_molecules': trained_molecules,
                         'net_state_dict': net.state_dict(),
                         'optimizer_state_dict': optimizer.state_dict(),
                         'loss': best_validation_error,
                         }, PATH)
+            
             print("Saving model to %s" %PATH)
             print('No. of trained molecules: %i' %trained_molecules)
             print('Validation error: %d' %best_validation_error)
             
         elif validation_error < best_validation_error:      
             best_validation_error = validation_error
-            torch.save({
-                        'trained_molecules': trained_molecules,
+            torch.save({'trained_molecules': trained_molecules,
                         'net_state_dict': net.state_dict(),
                         'optimizer_state_dict': optimizer.state_dict(),
                         'loss': best_validation_error,
                         }, PATH)
+            
             print("Saving model to %s" %PATH)
             print('No. of trained molecules %i' %trained_molecules)
             print('Validation error: %d' %best_validation_error)
