@@ -9,7 +9,7 @@ class up_conv3D(nn.Module):
         super(up_conv3D,self).__init__()
         self.up = nn.Sequential(
             nn.Upsample(scale_factor=2),
-            nn.Conv3d(ch_in,ch_out, kernel_size=kernel_size, stride=1, padding=0, bias=True),
+            nn.Conv3d(ch_in,ch_out, kernel_size=kernel_size, stride=1, padding=2, bias=True),
             nn.BatchNorm3d(ch_out),
             nn.ReLU(inplace=True)
         )
@@ -21,30 +21,31 @@ class up_conv3D(nn.Module):
 class Net(nn.Module):
     def __init__(self, N):
         kernel_size = 5
+        padding = 2
         super(Net, self).__init__()
         
         # Encoding
-        self.conv3d_11 = nn.Conv3d( 1, N, 7)
-        self.conv3d_12 = nn.Conv3d(N, N, 7)
+        self.conv3d_11 = nn.Conv3d(1, N, kernel_size)
+        self.conv3d_12 = nn.Conv3d(N, N, kernel_size)
         self.pool_1 = nn.MaxPool3d(2)
         
-        self.conv3d_21 = nn.Conv3d(N, 2*N, kernel_size)
-        self.conv3d_22 = nn.Conv3d(2*N, 2*N, kernel_size)
+        self.conv3d_21 = nn.Conv3d(N, 2*N, kernel_size, padding=padding)
+        self.conv3d_22 = nn.Conv3d(2*N, 2*N, kernel_size, padding=padding)
         self.pool_2 = nn.MaxPool3d(2)
         
         # Latent space
-        self.conv3d_31 = nn.Conv3d(2*N, 4*N, kernel_size)
-        self.conv3d_32 = nn.Conv3d(4*N, 4*N, kernel_size)
+        self.conv3d_31 = nn.Conv3d(2*N, 4*N, kernel_size, padding=padding)
+        self.conv3d_32 = nn.Conv3d(4*N, 4*N, kernel_size, padding=padding)
 
         
         #Decoding
         self.up3 = up_conv3D(4*N, 2*N, kernel_size)
         
-        self.conv3d_23 = nn.Conv3d(4*N, 2*N, kernel_size)
-        self.conv3d_24 = nn.Conv3d(2*N, 2*N, kernel_size)
+        self.conv3d_23 = nn.Conv3d(4*N, 2*N, kernel_size, padding=padding)
+        self.conv3d_24 = nn.Conv3d(2*N, 2*N, kernel_size, padding=padding)
         self.up2 = up_conv3D(2*N, N, kernel_size)
         
-        self.conv3d_13 = nn.Conv3d(2*N, N, kernel_size)
+        self.conv3d_13 = nn.Conv3d(2*N, N, kernel_size, padding=padding)
         self.conv3d_14 = nn.Conv3d(N, 6, kernel_size) # HCONF + background
         
         
