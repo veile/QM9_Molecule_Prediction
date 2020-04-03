@@ -46,7 +46,29 @@ def volume(n, name):
     p.add_volume(n)
     p.show_grid()
     # p.add_mesh(contours, scalars=contours.points[:, 2], show_scalar_bar=False)
+    p.show(screenshot='Volumes/%s.pdf' %name)
+    # p.show()
+    
+def volume2(n1, n2):
+#    N = np.shape(n)[0]
+#    lim = N*0.05/2
+#    X, Y, Z = np.mgrid[-lim:lim:N*1j, -lim:lim:N*1j, -lim:lim:N*1j] 
+#    
+#    # Data
+#    grid = pv.StructuredGrid(X, Y, Z)
+#    grid["vol"] = n.flatten()
+    # contours = grid.contour([n.mean()])
+
+    # Visualization
+    pv.set_plot_theme('document')
+    p = pv.Plotter()
+    p.add_volume(n1)
+    p.add_volume(n2)
+    p.show_grid()
+    # p.add_mesh(contours, scalars=contours.points[:, 2], show_scalar_bar=False)
+    # p.show(screenshot='Volumes/%s.pdf' %name)
     p.show()
+
 
 
 def test_volume():
@@ -60,27 +82,20 @@ def load(index):
     return dataset[index]
 
 if __name__ == "__main__":
-    n, gt = load(19)
-    n = np.squeeze(n)
-#    cubefile = "../special_course_2020_unet/qm9_000001_PBE1PBE_pcS-3.cube"
-#    with open(cubefile) as f:
-#        n, atoms = read_cube_data(f)
+    # n, gt = load(0)
+    # n = np.squeeze(n)
    
-    volume(n, "density")
-    volume(gt, "ground_truth")
-
-#    volume_pyvista(pad_density(n), "density_pad")
-    
-#    filename = "3_levels.npz"
-#    data = np.load(filename)
-#    gt = data['gt']
-#    out = np.squeeze( data['out'] )
-    
-#    reconstruct = np.dot(out.T, np.arange(6) )
-#
-#    volume_pyvista(reconstruct, "reconstruction")
+    # volume(n, "density")
+    # volume(gt, "ground_truth")
 
 
     
-#    test_volume()
+    filename = "Results/160input_1000.npz"
+    data = np.load(filename)
+    gt = data['gt']
+    out = np.squeeze( data['out'] )
     
+    reconstruct = np.dot(out.T, np.arange(6) )
+    volume2(gt, reconstruct)
+    # volume(gt, "ground_truth")
+    # volume(reconstruct, "reconstruction")
