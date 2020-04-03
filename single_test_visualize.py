@@ -27,7 +27,7 @@ inputs, targets = inputs.to(device).float(), targets.to(device).long()
 outputs = net(inputs)
 
 ground = targets.detach().cpu().numpy().reshape(dataset.output_grid, dataset.output_grid, dataset.output_grid)
-n = inputs.detach().cpu().numpy().reshape(200, 200, 200)
+n = inputs.detach().cpu().numpy().reshape(dataset.input_grid, dataset.input_grid, dataset.input_grid)
 
 # Plotting the output
 layer = 104
@@ -56,5 +56,10 @@ for c in range( output.shape[1] ):
     plt.colorbar()
 
 plt.tight_layout()
-plt.savefig("single_train_comparison_ADAM_5xcontractive.png", dpi=300)
+
+name="160input_1000"
+plt.savefig("Figures/single_train_%s.png" %name, dpi=300)
 plt.show()
+
+# Saving the arrays for plotting 3d
+np.savez("Outputs/%s.npz" %name, gt=ground, out=output)
