@@ -26,7 +26,7 @@ optimizer = optim.Adam(net.parameters(), lr=1e-4)
 inputs, targets = next(iter(loader))
 inputs, targets = inputs.to(device).float(), targets.to(device).long()
 
-epochs=10
+epochs=1000
 for epoch in range(epochs):  # loop over the dataset multiple times
     # zero the parameter gradients
     optimizer.zero_grad()
