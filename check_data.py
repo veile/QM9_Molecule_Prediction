@@ -1,13 +1,13 @@
 from dataset import MolecularDataset
+from vol_render import volume
 import numpy as np
 
 import tarfile
 import io
 from ase.io.cube import read_cube
 
-
 tar_filename = "qm9_000xxx_29.cube.tar.gz"
-dataset =  MolecularDataset(tar_filename, input_grid=130)
+
 
 ## =============================================================================
 ## Before clean
@@ -30,17 +30,20 @@ dataset =  MolecularDataset(tar_filename, input_grid=130)
 #
 #    n = cube['data']
 #    print(cube['atoms'])
+#    print(cube['origin'])
 #    N_sum += n.sum()*0.05**3
 #print(N_sum)
+
 
 
 # =============================================================================
 # After clean
 # =============================================================================
-N_sum = 0
-for i in range(len(dataset)):
-    inputs, targets = dataset[i]
-    N = inputs.sum()*0.05**3
-    print(N)
-    N_sum += N
-print(N_sum)
+#dataset =  MolecularDataset(tar_filename, input_grid=160)
+#N_sum = 0
+#for i in range(len(dataset)):
+#    inputs, targets = dataset[i]
+#    N = inputs.sum()*0.05**3
+#    print(N)
+#    N_sum += N
+#print(N_sum)
