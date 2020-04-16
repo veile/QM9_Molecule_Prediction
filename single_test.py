@@ -1,4 +1,4 @@
-from dataset import MolecularDataset, collate_none
+from dataset import MolecularDataset, default_collate
 from unet import Net
 
 import matplotlib.pyplot as plt
@@ -12,7 +12,6 @@ start = datetime.now()
 
 tarfile = "qm9_000xxx_29.cube.tar.gz"
 dataset =  MolecularDataset(tarfile)
-loader = torch.utils.data.DataLoader(dataset)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -23,7 +22,11 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(net.parameters(), lr=1e-4)
 #optimizer = optim.SGD(net.parameters(), lr=1e-4)
 
-inputs, targets = next(iter(loader))
+inputs, targets = dataset[1]
+
+inputs = torch.from_numpy(inputs[np.newaxis, :, :, :, :])
+targets = torch.from_numpy(targets[np.newaxis, :, :, :])
+
 inputs, targets = inputs.to(device).float(), targets.to(device).long()
 
 epochs=1000

@@ -1,4 +1,4 @@
-from dataset import MolecularDataset, collate_none
+from dataset import MolecularDataset, default_collate
 from unet import Net
 
 import matplotlib.pyplot as plt
@@ -9,7 +9,6 @@ import torch.nn.functional as F
 
 tarfile = "qm9_000xxx_29.cube.tar.gz"
 dataset =  MolecularDataset(tarfile)
-loader = torch.utils.data.DataLoader(dataset)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -20,8 +19,10 @@ net = Net(8)
 net.load_state_dict(torch.load(PATH))
 net.to(device)
 
+inputs, targets = dataset[1]
 
-inputs, targets = next(iter(loader))
+inputs = torch.from_numpy(inputs[np.newaxis, :, :, :, :])
+targets = torch.from_numpy(targets[np.newaxis, :, :, :])
 inputs, targets = inputs.to(device).float(), targets.to(device).long()
 
 outputs = net(inputs)
@@ -30,7 +31,7 @@ ground = targets.detach().cpu().numpy().reshape(dataset.output_grid, dataset.out
 n = inputs.detach().cpu().numpy().reshape(dataset.input_grid, dataset.input_grid, dataset.input_grid)
 
 # Plotting the output
-layer = 104
+layer = 95
 layer_scaled = int( dataset.output_grid/dataset.input_grid * layer )
 
 plt.figure( figsize=(12,12))
@@ -57,9 +58,9 @@ for c in range( output.shape[1] ):
 
 plt.tight_layout()
 
-name="160input_1000"
+name="newmol_1000"
 plt.savefig("Figures/single_train_%s.png" %name, dpi=300)
 plt.show()
 
 # Saving the arrays for plotting 3d
-np.savez("Outputs/%s.npz" %name, gt=ground, out=output)
+np.savez("Results/%s.npz" %name, gt=ground, out=output)
