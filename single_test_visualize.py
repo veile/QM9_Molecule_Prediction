@@ -19,7 +19,7 @@ net = Net(8)
 net.load_state_dict(torch.load(PATH))
 net.to(device)
 
-inputs, targets = dataset[1]
+inputs, targets = dataset[16]
 
 inputs = torch.from_numpy(inputs[np.newaxis, :, :, :, :])
 targets = torch.from_numpy(targets[np.newaxis, :, :, :])
@@ -32,18 +32,18 @@ n = inputs.detach().cpu().numpy().reshape(dataset.input_grid, dataset.input_grid
 
 # Plotting the output
 layer = 95
-layer_scaled = int( dataset.output_grid/dataset.input_grid * layer )
+layer_scaled = 75#int( dataset.output_grid/dataset.input_grid * layer )
 
 plt.figure( figsize=(12,12))
 
 plt.subplot(431)
 plt.title("Ground truth")
-plt.imshow( ground[layer_scaled, :, :], origin='lower')
+plt.imshow( ground[:, :, layer_scaled], origin='lower')
 plt.colorbar()
 
 plt.subplot(432)
 plt.title("Electron Density")
-plt.imshow( n[layer, :, :], origin='lower')
+plt.imshow( n[:, :, layer], origin='lower')
 plt.colorbar()
 
 output = F.softmax(outputs, 1)
@@ -53,12 +53,12 @@ for c in range( output.shape[1] ):
     plc = 433+c
     plt.subplot(plc)
     plt.title("Channel %i" %(c+1))
-    plt.imshow( output[0, c, layer_scaled, :, :], origin='lower', vmin=0, vmax=1)
+    plt.imshow( output[0, c, :, :, layer_scaled], origin='lower', vmin=0, vmax=1)
     plt.colorbar()
 
 plt.tight_layout()
 
-name="newmol_1000"
+name="mol_no18"
 plt.savefig("Figures/single_train_%s.png" %name, dpi=300)
 plt.show()
 
