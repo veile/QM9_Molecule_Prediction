@@ -22,7 +22,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(net.parameters(), lr=1e-4)
 #optimizer = optim.SGD(net.parameters(), lr=1e-4)
 
-inputs, targets = dataset[1]
+inputs, targets = dataset[16]
 
 inputs = torch.from_numpy(inputs[np.newaxis, :, :, :, :])
 targets = torch.from_numpy(targets[np.newaxis, :, :, :])
