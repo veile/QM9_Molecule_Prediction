@@ -4,6 +4,8 @@ import tarfile
 import io
 
 from ase.io.cube import read_cube
+from ase.data import covalent_radii
+
 from torch.utils.data.dataset import Dataset
 from torch.utils.data.dataloader import default_collate
 from scipy.ndimage.interpolation import shift
@@ -151,11 +153,12 @@ class MolecularDataset(Dataset):
                 8 : 3,
                 7 : 4,
                 9 : 5}
-    
+        
+        
         for i in range(len(a)):
             dist_from_center = np.sqrt((X - atoms_pos[i,0])**2 + (Y-atoms_pos[i,1])**2 + (Z-atoms_pos[i,2])**2)
     
-            mask = dist_from_center <= radius
+            mask = dist_from_center <= int( covalent_radii[ atomic_numbers[i]] *0.529177*20 )
             true = true + mask*atomic_dict[atomic_numbers[i] ]
        
         # Cropping
