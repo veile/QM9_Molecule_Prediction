@@ -1,32 +1,40 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Mar  9 13:42:09 2020
-
-@author: Thomas
-"""
+from dataset import MolecularDataset, default_collate
+from unet import Net
 
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
-from dataset import MolecularDataset, collate_none
-from unet import Net
+import torch.nn as nn
 import torch.nn.functional as F
 
-# Loading trained model
-PATH="QM9_net"
-
-net = Net(8)
-net.load_state_dict(torch.load(PATH+".pth",  map_location=torch.device('cpu')))
-
-
-# Loading dataset
 tarfile = "qm9_000xxx_29.cube.tar.gz"
 dataset =  MolecularDataset(tarfile)
 
-n, ground =  dataset[0]
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+# Loading trained model
+PATH = './best_model.pth'
+
+net = Net(8)
+net.load_state_dict(torch.load(PATH)['Model'])
+net.to(device)
+
+inputs, targets = dataset[17]
+
+inputs = torch.from_numpy(inputs[np.newaxis, :, :, :, :])
+targets = torch.from_numpy(targets[np.newaxis, :, :, :])
+inputs, targets = inputs.to(device).float(), targets.to(device).long()
+
+outputs = net(inputs)
+
+ground = targets.detach().cpu().numpy().reshape(dataset.output_grid, dataset.output_grid, dataset.output_grid)
+n = inputs.detach().cpu().numpy().reshape(dataset.input_grid, dataset.input_grid, dataset.input_grid)
+
+# Plotting the output
+layer = 95
+layer_scaled = int( dataset.output_grid/dataset.input_grid * layer )
 
 plt.figure( figsize=(12,12))
-layer = 104
-layer_scaled = int( dataset.output_grid/dataset.input_grid * layer )
 
 plt.subplot(431)
 plt.title("Ground truth")
@@ -35,13 +43,12 @@ plt.colorbar()
 
 plt.subplot(432)
 plt.title("Electron Density")
-plt.imshow( n[0, layer, :, :], origin='lower')
+plt.imshow( n[layer, :, :], origin='lower')
 plt.colorbar()
 
+output = F.softmax(outputs, 1)
+output = output.detach().cpu().numpy()
 
-output = net( torch.tensor( n.reshape(1,1,200,200,200) ).float() )
-output = F.softmax(output, 1)
-output = output.detach().numpy()
 for c in range( output.shape[1] ):
     plc = 433+c
     plt.subplot(plc)
@@ -50,5 +57,10 @@ for c in range( output.shape[1] ):
     plt.colorbar()
 
 plt.tight_layout()
-plt.savefig("comparison_%s.png" %PATH, dpi=300)
+
+name="3h_run_no19"
+plt.savefig("Figures/%s.png" %name, dpi=300)
 plt.show()
+
+# Saving the arrays for plotting 3d
+np.savez("Results/%s.npz" %name, gt=ground, out=output)
