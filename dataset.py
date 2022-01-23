@@ -96,7 +96,7 @@ class MolecularDataset(Dataset):
         of the neural network output
     
     """
-    def __init__(self, tar_filename, input_grid=170, output_grid=162):    
+    def __init__(self, tar_filename, input_grid=170, output_grid=160):    
         
         # Chooses the extracts function based on filename - can easily be
         # extended to work for several compression types

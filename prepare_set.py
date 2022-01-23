@@ -20,7 +20,7 @@ def small(single_idx):
 
 def full(single_idx):
     # Adds all tar-files in the work-dir to a list
-    work_dir = "/work3/projects/ecas-Aug-2020/cube/"
+    work_dir = "/home/scratch3/pbjo/cube/"
     with open(work_dir+"qm9_all.txt", "r") as f:
         content = f.read()
         tarfiles = content.splitlines()
